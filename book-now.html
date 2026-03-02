@@ -400,20 +400,20 @@
         pieces.push({
           x: canvas.width * 0.5 + (Math.random() - 0.5) * canvas.width * 0.3,
           y: canvas.height * 0.45,
-          vx: (Math.random() - 0.5) * 18,
-          vy: -Math.random() * 16 - 6,
+          vx: (Math.random() - 0.5) * 9,
+          vy: -Math.random() * 8 - 3,
           w: Math.random() * 8 + 4,
           h: Math.random() * 6 + 3,
           color: colors[Math.floor(Math.random() * colors.length)],
           rot: Math.random() * 360,
-          rotV: (Math.random() - 0.5) * 12,
-          gravity: 0.25 + Math.random() * 0.1,
+          rotV: (Math.random() - 0.5) * 6,
+          gravity: 0.12 + Math.random() * 0.05,
           opacity: 1
         });
       }
 
       var frame = 0;
-      var maxFrames = 140;
+      var maxFrames = 210;
       function draw() {
         if (frame > maxFrames) { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
