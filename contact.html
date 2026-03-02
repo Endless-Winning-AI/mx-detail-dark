@@ -218,8 +218,11 @@
 
           <!-- Status Messages -->
           <div id="contactFormStatus" style="margin-top: 24px; text-align: center; display: none;">
-            <p id="contactFormMessage" style="font-size: 1.1rem; font-weight: 500;"></p>
+            <div id="contactMessageBox" style="display: inline-block; padding: 18px 28px; border-radius: 12px; max-width: 520px; width: 100%;">
+              <p id="contactFormMessage" style="font-size: 1.15rem; font-weight: 600; margin: 0; line-height: 1.4;"></p>
+            </div>
           </div>
+          <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99999;"></canvas>
         </form>
       </div>
     </section>
@@ -347,14 +350,15 @@
       .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
       .then(function(result) {
         if (result.ok) {
-          showStatus('Your message has been sent! We will get back to you within 24 hours.', '#007cba');
+          showStatus('Your message has been sent! We\u2019ll get back to you within 24 hours.', 'success');
           form.reset();
+          launchConfetti();
         } else {
-          showStatus(result.data.error || 'Something went wrong. Please try again or call us directly.', '#e63946');
+          showStatus(result.data.error || 'Something went wrong. Please try again or call us directly.', 'error');
         }
       })
       .catch(function() {
-        showStatus('Network error. Please check your connection or call us directly.', '#e63946');
+        showStatus('Network error. Please check your connection or call us directly.', 'error');
       })
       .finally(function() {
         btn.disabled = false;
@@ -363,14 +367,88 @@
       });
     });
 
-    function showStatus(msg, color) {
+    var box = document.getElementById('contactMessageBox');
+
+    function showStatus(msg, type) {
       statusDiv.style.display = 'block';
-      msgEl.textContent = msg;
-      msgEl.style.color = color;
+      if (type === 'success') {
+        msgEl.innerHTML = '<span style="font-size:1.5rem;vertical-align:middle;margin-right:8px;">&#10003;</span>' + msg;
+        msgEl.style.color = '#fff';
+        box.style.background = 'linear-gradient(135deg, #16a34a, #22c55e)';
+        box.style.boxShadow = '0 4px 24px rgba(34,197,94,0.35)';
+        box.style.border = 'none';
+        box.style.animation = 'statusPop 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+      } else {
+        msgEl.textContent = msg;
+        msgEl.style.color = '#fff';
+        box.style.background = 'linear-gradient(135deg, #dc2626, #e63946)';
+        box.style.boxShadow = '0 4px 24px rgba(220,38,38,0.3)';
+        box.style.border = 'none';
+        box.style.animation = 'statusPop 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+      }
       statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function launchConfetti() {
+      var canvas = document.getElementById('confettiCanvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      var pieces = [];
+      var colors = ['#22c55e','#16a34a','#007cba','#00a8e8','#fbbf24','#f59e0b','#ffffff'];
+      for (var i = 0; i < 120; i++) {
+        pieces.push({
+          x: canvas.width * 0.5 + (Math.random() - 0.5) * canvas.width * 0.3,
+          y: canvas.height * 0.45,
+          vx: (Math.random() - 0.5) * 18,
+          vy: -Math.random() * 16 - 6,
+          w: Math.random() * 8 + 4,
+          h: Math.random() * 6 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          rotV: (Math.random() - 0.5) * 12,
+          gravity: 0.25 + Math.random() * 0.1,
+          opacity: 1
+        });
+      }
+
+      var frame = 0;
+      var maxFrames = 140;
+      function draw() {
+        if (frame > maxFrames) { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var i = 0; i < pieces.length; i++) {
+          var p = pieces[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.vx *= 0.98;
+          p.rot += p.rotV;
+          if (frame > maxFrames - 40) p.opacity = Math.max(0, p.opacity - 0.03);
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot * Math.PI / 180);
+          ctx.globalAlpha = p.opacity;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        }
+        frame++;
+        requestAnimationFrame(draw);
+      }
+      draw();
     }
   })();
   </script>
+
+  <style>
+    @keyframes statusPop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
 
 </body>
 </html>
