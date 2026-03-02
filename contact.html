@@ -169,23 +169,33 @@
           <p>Have a question or need a quote? Fill out the form below and we will get back to you within 24 hours.</p>
         </div>
 
-        <form action="https://formspree.io/f/FORM_ID" method="POST" class="contact-form" style="max-width: 640px; margin: 48px auto 0;">
+        <form id="contactForm" class="contact-form" style="max-width: 640px; margin: 48px auto 0;" novalidate>
           <!-- Honeypot field for spam prevention -->
-          <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
-
-          <div class="form-group">
-            <label for="contact-name">Name <span class="required">*</span></label>
-            <input type="text" id="contact-name" name="name" required placeholder="Your full name" autocomplete="name">
+          <div class="hp-field" aria-hidden="true">
+            <label for="website">Website</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
           </div>
 
-          <div class="form-group">
-            <label for="contact-email">Email <span class="required">*</span></label>
-            <input type="email" id="contact-email" name="email" required placeholder="your@email.com" autocomplete="email">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contact-firstName">First Name <span class="required">*</span></label>
+              <input type="text" id="contact-firstName" name="firstName" required placeholder="John" autocomplete="given-name">
+            </div>
+            <div class="form-group">
+              <label for="contact-lastName">Last Name <span class="required">*</span></label>
+              <input type="text" id="contact-lastName" name="lastName" required placeholder="Smith" autocomplete="family-name">
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="contact-phone">Phone <span style="font-weight: 400; text-transform: none; letter-spacing: 0;">(optional)</span></label>
-            <input type="tel" id="contact-phone" name="phone" placeholder="(123) 456-7890" autocomplete="tel">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contact-email">Email <span class="required">*</span></label>
+              <input type="email" id="contact-email" name="email" required placeholder="your@email.com" autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label for="contact-phone">Phone <span class="required">*</span></label>
+              <input type="tel" id="contact-phone" name="phone" required placeholder="(813) 555-0123" autocomplete="tel">
+            </div>
           </div>
 
           <div class="form-group">
@@ -203,7 +213,12 @@
           </div>
 
           <div class="form-group">
-            <button type="submit" class="btn btn-primary btn-lg btn-glow" style="width: 100%;">Send Message</button>
+            <button type="submit" id="contactSubmitBtn" class="btn btn-primary btn-lg btn-glow" style="width: 100%;">Send Message</button>
+          </div>
+
+          <!-- Status Messages -->
+          <div id="contactFormStatus" style="margin-top: 24px; text-align: center; display: none;">
+            <p id="contactFormMessage" style="font-size: 1.1rem; font-weight: 500;"></p>
           </div>
         </form>
       </div>
@@ -265,6 +280,97 @@
   </footer>
 
   <script src="js/main.js" defer></script>
+
+  <script>
+  (function() {
+    var ENDPOINT = 'https://jriquvajwzarvrvlgpem.supabase.co/functions/v1/mx-detail-booking';
+    var form = document.getElementById('contactForm');
+    var btn = document.getElementById('contactSubmitBtn');
+    var statusDiv = document.getElementById('contactFormStatus');
+    var msgEl = document.getElementById('contactFormMessage');
+
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Honeypot check
+      var hp = document.getElementById('website');
+      if (hp && hp.value) return;
+
+      // Basic validation
+      var firstName = form.firstName.value.trim();
+      var lastName = form.lastName.value.trim();
+      var email = form.elements['email'].value.trim();
+      var phone = form.elements['phone'].value.trim();
+      var location = form.elements['location'].value;
+      var message = form.elements['message'].value.trim();
+
+      if (!firstName || !lastName || !email || !phone || !location || !message) {
+        showStatus('Please fill in all required fields.', '#e63946');
+        return;
+      }
+
+      // Email validation
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showStatus('Please enter a valid email address.', '#e63946');
+        return;
+      }
+
+      // Phone validation (at least 10 digits)
+      if (phone.replace(/\D/g, '').length < 10) {
+        showStatus('Please enter a valid phone number.', '#e63946');
+        return;
+      }
+
+      // Disable button
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      btn.style.opacity = '0.7';
+
+      var payload = {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        location: location,
+        message: message,
+        tags: ['website-contact'],
+        source: 'Website - Contact'
+      };
+
+      fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
+      .then(function(result) {
+        if (result.ok) {
+          showStatus('Your message has been sent! We will get back to you within 24 hours.', '#007cba');
+          form.reset();
+        } else {
+          showStatus(result.data.error || 'Something went wrong. Please try again or call us directly.', '#e63946');
+        }
+      })
+      .catch(function() {
+        showStatus('Network error. Please check your connection or call us directly.', '#e63946');
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Send Message';
+        btn.style.opacity = '1';
+      });
+    });
+
+    function showStatus(msg, color) {
+      statusDiv.style.display = 'block';
+      msgEl.textContent = msg;
+      msgEl.style.color = color;
+      statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  })();
+  </script>
 
 </body>
 </html>

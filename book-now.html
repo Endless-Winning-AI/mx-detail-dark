@@ -332,7 +332,9 @@
         vehicleModel: form.vehicleModel.value.trim(),
         location: form.location.value,
         preferredDate: form.preferredDate.value,
-        message: form.message.value.trim()
+        message: form.message.value.trim(),
+        tags: ['website-booking'],
+        source: 'Website - Book Now'
       };
 
       fetch(ENDPOINT, {
