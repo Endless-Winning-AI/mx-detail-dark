@@ -362,6 +362,22 @@ p {
   background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, transparent 100%) !important;
 }
 
+/* ── Hero Google Badge ── */
+.hero-google-badge-inner {
+  background: rgba(0,10,20,0.5) !important;
+  border: 1px solid rgba(0,140,220,0.3) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.hero-google-badge-inner:hover {
+  background: rgba(0,20,40,0.65) !important;
+  border-color: rgba(0,160,240,0.5) !important;
+  box-shadow: 0 0 20px rgba(0,140,220,0.2);
+}
+.hero-google-cta {
+  color: #00a8e8 !important;
+}
+
 /* ── Reviews Section ── */
 .reviews-section {
   background: var(--dm-surface) !important;
@@ -372,6 +388,10 @@ p {
   box-shadow: none !important;
   position: relative;
   overflow: hidden;
+}
+.review-card:hover {
+  border-color: rgba(0,124,186,0.3) !important;
+  box-shadow: 0 4px 20px rgba(0,124,186,0.1) !important;
 }
 .review-card::before {
   content: '';
@@ -388,6 +408,45 @@ p {
 }
 .review-author {
   color: var(--dm-text) !important;
+}
+.review-date {
+  color: var(--dm-text-muted) !important;
+}
+.review-avatar {
+  background: rgba(0,124,186,0.25) !important;
+  color: var(--color-primary-light) !important;
+  border: 1px solid rgba(0,124,186,0.3);
+}
+.google-rating-number {
+  color: #ffffff !important;
+}
+.google-rating-count {
+  color: var(--dm-text-muted) !important;
+}
+.google-review-link {
+  border-color: rgba(0,160,230,0.35) !important;
+  color: var(--color-primary-light) !important;
+}
+.google-review-link:hover {
+  background: rgba(0,124,186,0.15) !important;
+  border-color: rgba(0,160,230,0.6) !important;
+  color: #ffffff !important;
+}
+.reviews-arrow {
+  background: var(--dm-surface-card) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text-secondary) !important;
+}
+.reviews-arrow:hover {
+  border-color: rgba(0,160,230,0.4) !important;
+  color: var(--color-primary-light) !important;
+  background: rgba(0,124,186,0.08) !important;
+}
+.reviews-dot {
+  background: rgba(255,255,255,0.15) !important;
+}
+.reviews-dot.active {
+  background: var(--color-primary) !important;
 }
 
 /* ── Parallax CTA ── */
