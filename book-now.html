@@ -395,20 +395,22 @@
       canvas.height = window.innerHeight;
 
       var pieces = [];
-      var colors = ['#22c55e','#16a34a','#007cba','#00a8e8','#fbbf24','#f59e0b','#ffffff'];
-      for (var i = 0; i < 120; i++) {
+      var colors = ['#007cba','#00a8e8','#003d6b','#0056a0','#ffffff','#b8d4ff'];
+      for (var i = 0; i < 150; i++) {
+        var isGlitter = Math.random() < 0.25;
         pieces.push({
           x: canvas.width * 0.5 + (Math.random() - 0.5) * canvas.width * 0.3,
           y: canvas.height * 0.45,
           vx: (Math.random() - 0.5) * 9,
           vy: -Math.random() * 8 - 3,
-          w: Math.random() * 8 + 4,
-          h: Math.random() * 6 + 3,
-          color: colors[Math.floor(Math.random() * colors.length)],
+          w: isGlitter ? Math.random() * 3 + 2 : Math.random() * 8 + 4,
+          h: isGlitter ? Math.random() * 3 + 2 : Math.random() * 6 + 3,
+          color: isGlitter ? '#ffffff' : colors[Math.floor(Math.random() * colors.length)],
           rot: Math.random() * 360,
           rotV: (Math.random() - 0.5) * 6,
           gravity: 0.12 + Math.random() * 0.05,
-          opacity: 1
+          opacity: 1,
+          sparkle: isGlitter
         });
       }
 
@@ -428,8 +430,16 @@
           ctx.save();
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rot * Math.PI / 180);
-          ctx.globalAlpha = p.opacity;
+          if (p.sparkle) {
+            ctx.globalAlpha = p.opacity * (0.3 + Math.abs(Math.sin(frame * 0.35 + i * 2)) * 0.7);
+          } else {
+            ctx.globalAlpha = p.opacity;
+          }
           ctx.fillStyle = p.color;
+          if (p.sparkle) {
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 6;
+          }
           ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
           ctx.restore();
         }
@@ -445,6 +455,15 @@
     @keyframes statusPop {
       0% { transform: scale(0.8); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes rainbowGlow {
+      0%, 100% { box-shadow: 0 0 18px 5px rgba(255,0,0,0.5), 0 0 36px 10px rgba(255,0,0,0.15); }
+      14% { box-shadow: 0 0 18px 5px rgba(255,140,0,0.5), 0 0 36px 10px rgba(255,140,0,0.15); }
+      28% { box-shadow: 0 0 18px 5px rgba(255,230,0,0.5), 0 0 36px 10px rgba(255,230,0,0.15); }
+      42% { box-shadow: 0 0 18px 5px rgba(0,200,80,0.5), 0 0 36px 10px rgba(0,200,80,0.15); }
+      57% { box-shadow: 0 0 18px 5px rgba(0,140,255,0.5), 0 0 36px 10px rgba(0,140,255,0.15); }
+      71% { box-shadow: 0 0 18px 5px rgba(100,0,255,0.5), 0 0 36px 10px rgba(100,0,255,0.15); }
+      85% { box-shadow: 0 0 18px 5px rgba(200,0,255,0.5), 0 0 36px 10px rgba(200,0,255,0.15); }
     }
   </style>
 
