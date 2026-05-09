@@ -415,7 +415,7 @@ Deno.serve(async (req: Request) => {
     // Tags: frontend can send additional tags, plus we add the market tag
     const tags: string[] = [...(body.tags || [])];
     if (isJobApplication) {
-      for (const tag of ["job-application", "website-application"]) {
+      for (const tag of ["applicant", "job-application", "website-application"]) {
         if (!tags.includes(tag)) tags.push(tag);
       }
     }
