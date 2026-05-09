@@ -145,7 +145,7 @@ async function createJobApplicationOpportunity(
   contactId: string,
   body: Record<string, unknown>,
   headers: Record<string, string>,
-): Promise<void> {
+): Promise<string> {
   const firstName = String(body.firstName ?? "").trim();
   const lastName = String(body.lastName ?? "").trim();
   const name = `Job Application - ${[firstName, lastName].filter(Boolean).join(" ") || "Website Applicant"}`;
@@ -168,7 +168,11 @@ async function createJobApplicationOpportunity(
   if (!res.ok) {
     const data = await res.text();
     console.error(`Job application opportunity create failed: ${res.status} ${data}`);
+    throw new Error("Failed to create job application opportunity");
   }
+
+  const data = await res.json();
+  return data?.opportunity?.id ?? data?.id ?? "";
 }
 
 // ── Slack Notification ──────────────────────────────────────────
@@ -427,11 +431,20 @@ Deno.serve(async (req: Request) => {
 
     if (notes.length > 0 && contactId) {
       const noteBody = `--- ${source} ---\n${notes.join("\n")}\nSubmitted by: ${firstName} ${lastName} | ${email} | ${phone}\n--- ${new Date().toISOString()} ---`;
-      await fetch(`${GHL_API}/contacts/${contactId}/notes`, {
+      const noteRes = await fetch(`${GHL_API}/contacts/${contactId}/notes`, {
         method: "POST",
         headers: ghl,
         body: JSON.stringify({ body: noteBody }),
       });
+
+      if (isJobApplication && !noteRes.ok) {
+        const noteData = await noteRes.text();
+        console.error(`Job application note create failed: ${noteRes.status} ${noteData}`);
+        return new Response(
+          JSON.stringify({ error: "Application contact was created, but the application details note failed. Please call us directly." }),
+          { status: 502, headers },
+        );
+      }
     }
 
     if (isJobApplication && contactId) {
