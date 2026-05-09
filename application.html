@@ -169,8 +169,19 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="app-city">City <span class="required">*</span></label>
-              <input type="text" id="app-city" name="city" required autocomplete="address-level2" placeholder="Tampa or Orlando">
+              <fieldset class="radio-fieldset">
+                <legend>Location <span class="required">*</span></legend>
+                <div class="radio-options">
+                  <label class="radio-option" for="app-city-tampa">
+                    <input type="radio" id="app-city-tampa" name="city" value="Tampa" required>
+                    <span>Tampa</span>
+                  </label>
+                  <label class="radio-option" for="app-city-orlando">
+                    <input type="radio" id="app-city-orlando" name="city" value="Orlando" required>
+                    <span>Orlando</span>
+                  </label>
+                </div>
+              </fieldset>
             </div>
           </div>
 

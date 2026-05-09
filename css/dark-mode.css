@@ -725,6 +725,18 @@ p {
 .form-group textarea::placeholder {
   color: var(--dm-text-muted) !important;
 }
+.radio-fieldset legend {
+  color: var(--dm-text) !important;
+}
+.radio-option {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+.radio-option:has(input:checked) {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(0,124,186,0.15) !important;
+}
 
 .application-panel {
   background: var(--dm-surface) !important;
