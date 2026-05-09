@@ -49,7 +49,7 @@ const MARKET_MAP: Record<string, { tag: string; city: string }> = {
 };
 
 // Slack
-const SLACK_CHANNEL = "C0A2BRWT7PD"; // #leads
+const SLACK_LEADS_CHANNEL = "C0A2BRWT7PD"; // #leads
 
 // ── Helpers ─────────────────────────────────────────────────────
 function corsHeaders(origin: string) {
@@ -178,6 +178,7 @@ async function createJobApplicationOpportunity(
 // ── Slack Notification ──────────────────────────────────────────
 async function sendSlackNotification(
   token: string,
+  channel: string,
   body: Record<string, unknown>,
 ): Promise<void> {
   const { firstName, lastName, phone, email, service, source,
@@ -215,7 +216,7 @@ async function sendSlackNotification(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      channel: SLACK_CHANNEL,
+      channel,
       text: `New Orlando Lead: ${name} — ${phone}`,
       blocks: mainBlocks,
     }),
@@ -245,7 +246,7 @@ async function sendSlackNotification(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        channel: SLACK_CHANNEL,
+        channel,
         thread_ts: threadTs,
         text: details.join("\n"),
         blocks: [
@@ -261,6 +262,81 @@ async function sendSlackNotification(
     if (!threadData.ok) {
       console.error("Slack thread reply failed:", threadData.error);
     }
+  }
+}
+
+async function sendJobApplicationSlackNotification(
+  token: string,
+  channel: string,
+  body: Record<string, unknown>,
+): Promise<void> {
+  const {
+    firstName,
+    lastName,
+    phone,
+    email,
+    city,
+    daysAvailable,
+    hoursAvailable,
+    startDate,
+    detailingExperience,
+    attentionToDetail,
+    performancePay,
+    paidTestDetail,
+  } = body as Record<string, string>;
+
+  const name = `${firstName} ${lastName}`.trim();
+  const now = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+  const detailPreview = detailingExperience
+    ? detailingExperience.slice(0, 600)
+    : "No experience details provided.";
+
+  const blocks = [
+    {
+      type: "header",
+      text: { type: "plain_text", text: ":clipboard: New Detailer Application", emoji: true },
+    },
+    {
+      type: "section",
+      fields: [
+        { type: "mrkdwn", text: `*Name:*\n${name}` },
+        { type: "mrkdwn", text: `*Location:*\n${city || "—"}` },
+        { type: "mrkdwn", text: `*Phone:*\n${phone}` },
+        { type: "mrkdwn", text: `*Email:*\n${email}` },
+        { type: "mrkdwn", text: `*Availability:*\n${[daysAvailable, hoursAvailable].filter(Boolean).join(", ") || "—"}` },
+        { type: "mrkdwn", text: `*Start Date:*\n${startDate || "—"}` },
+        { type: "mrkdwn", text: `*Attention:*\n${attentionToDetail ? `${attentionToDetail}/10` : "—"}` },
+        { type: "mrkdwn", text: `*Paid Test Detail:*\n${paidTestDetail || "—"}` },
+      ],
+    },
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: `*Experience:*\n${detailPreview}` },
+    },
+    {
+      type: "context",
+      elements: [
+        { type: "mrkdwn", text: `Performance pay: ${performancePay || "—"} | Submitted ${now} ET` },
+      ],
+    },
+  ];
+
+  const res = await fetch("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      channel,
+      text: `New Detailer Application: ${name} — ${phone}`,
+      blocks,
+    }),
+  });
+
+  const data = await res.json();
+  if (!data.ok) {
+    console.error("Slack job application message failed:", data.error);
   }
 }
 
@@ -451,11 +527,24 @@ Deno.serve(async (req: Request) => {
       await createJobApplicationOpportunity(contactId, body, ghl);
     }
 
+    // ── Slack notification for job applications (fire-and-forget) ──
+    if (isJobApplication) {
+      const slackToken = Deno.env.get("SLACK_MXDETAIL_BOT");
+      const applicationSlackChannel = Deno.env.get("SLACK_MXDETAIL_JOB_APPLICATION_CHANNEL");
+      if (slackToken && applicationSlackChannel) {
+        sendJobApplicationSlackNotification(slackToken, applicationSlackChannel, body).catch((err) =>
+          console.error("Slack job application notification error:", err),
+        );
+      } else if (!applicationSlackChannel) {
+        console.error("SLACK_MXDETAIL_JOB_APPLICATION_CHANNEL secret is not set");
+      }
+    }
+
     // ── Slack notification for Orlando leads (fire-and-forget) ──
-    if (locationKey === "orlando") {
+    if (!isJobApplication && locationKey === "orlando") {
       const slackToken = Deno.env.get("SLACK_MXDETAIL_BOT");
       if (slackToken) {
-        sendSlackNotification(slackToken, { ...body, source }).catch((err) =>
+        sendSlackNotification(slackToken, SLACK_LEADS_CHANNEL, { ...body, source }).catch((err) =>
           console.error("Slack notification error:", err),
         );
       }
