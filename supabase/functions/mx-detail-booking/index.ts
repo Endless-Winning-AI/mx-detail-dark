@@ -6,8 +6,8 @@ const GHL_LOCATION_ID = "EYGA3G4KGz3qHyZXzRkH";
 
 // GHL Custom Field IDs (from /locations/{id}/customFields)
 const CF_SERVICE_CITY = "2MXRgYECjblQZMg54tin";
-const JOB_APPLICATION_PIPELINE_ID = "CWJWJuMObNEAKpg9rFYt"; // Marketing Pipeline fallback; recruiting pipeline creation needs GHL pipeline-write scope.
-const JOB_APPLICATION_STAGE_ID = "9a604258-24a4-4ede-98ac-50aecc652c86"; // New Lead
+const JOB_APPLICATION_PIPELINE_ID = "KdzgB4JGVXkNche5fcnS"; // Detailer Applications
+const JOB_APPLICATION_STAGE_ID = "e4ec24b7-4d0e-4e30-9026-2cb7c1340dcd"; // New Application
 
 const JOB_APPLICATION_FIELDS: Record<string, string> = {
   fullName: "pAcGSxuYMSaqDXwjV0ZM",
