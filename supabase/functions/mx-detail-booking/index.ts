@@ -70,6 +70,13 @@ function ghlHeaders(token: string) {
   };
 }
 
+function slackChannelRef(channel: string): string {
+  const value = channel.trim();
+  if (!value) return value;
+  if (value.startsWith("#") || /^[A-Z][A-Z0-9]{8,}$/.test(value)) return value;
+  return `#${value}`;
+}
+
 async function addTagsWithRetry(
   contactId: string,
   tags: string[],
@@ -532,7 +539,7 @@ Deno.serve(async (req: Request) => {
       const slackToken = Deno.env.get("SLACK_MXDETAIL_BOT");
       const applicationSlackChannel = Deno.env.get("SLACK_MXDETAIL_JOB_APPLICATION_CHANNEL");
       if (slackToken && applicationSlackChannel) {
-        sendJobApplicationSlackNotification(slackToken, applicationSlackChannel, body).catch((err) =>
+        sendJobApplicationSlackNotification(slackToken, slackChannelRef(applicationSlackChannel), body).catch((err) =>
           console.error("Slack job application notification error:", err),
         );
       } else if (!applicationSlackChannel) {
