@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Careers · Most Excellent Auto Detail</title>
-  <meta name="description" content="Join the MX Detail team. We're hiring auto detailing professionals in Tampa and Orlando. Apply today.">
+  <title>Apply for a Job · Most Excellent Auto Detail</title>
+  <meta name="description" content="Apply for an auto detailing job with MX Detail. Submit your availability, experience, work ethic, and pay expectations online.">
   <link rel="canonical" href="https://mxdetail.com/application.html">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Careers · Most Excellent Auto Detail">
-  <meta property="og:description" content="Join the MX Detail team. Now hiring detailing professionals in Tampa and Orlando.">
+  <meta property="og:title" content="Apply for a Job · Most Excellent Auto Detail">
+  <meta property="og:description" content="Join the MX Detail team. Submit your detailing job application online.">
   <meta property="og:image" content="https://mxdetail.com/assets/images/og-image.jpg">
   <meta property="og:url" content="https://mxdetail.com/application.html">
   <meta property="og:type" content="website">
@@ -47,7 +47,7 @@
         <a href="ceramic-pro.html">Ceramic Pro</a>
         <a href="packages.html">Packages</a>
         <a href="contact.html">Contact</a>
-        <a href="application.html" class="active">Careers</a>
+        <a href="application.html" class="active">Apply for a Job</a>
         <a href="book-now.html" class="nav-cta">Book Now</a>
       </div>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobileMenu">
@@ -66,7 +66,7 @@
       <a href="packages.html">Packages</a>
       <a href="contact.html">Contact</a>
       <a href="book-now.html">Book Now</a>
-      <a href="application.html">Careers</a>
+      <a href="application.html">Apply for a Job</a>
     </nav>
   </div>
 
@@ -131,17 +131,188 @@
       </svg>
     </div>
 
-    <!-- ═══ Apply Now CTA ═══ -->
-    <section class="section" aria-label="Apply now">
+    <!-- ═══ Job Application Form ═══ -->
+    <section class="section" aria-label="Job application form">
       <div class="container">
         <div class="text-center">
-          <span class="section-badge">Apply Now</span>
-          <h2>Ready to Get Started?</h2>
+          <span class="section-badge">Apply for a Job</span>
+          <h2>Tell Us How You Work</h2>
           <div class="section-divider"></div>
-          <p style="max-width: 600px; margin: 0 auto 32px;">Click the button below to fill out our application. We will review your submission and get back to you as soon as possible.</p>
-          <!-- TODO: Replace JOTFORM_URL with real JotForm application link -->
-          <a href="https://form.jotform.com/PLACEHOLDER" target="_blank" rel="noopener noreferrer" class="btn btn-cta btn-glow" style="font-size: 1.125rem; padding: 16px 48px;">Apply Now</a>
+          <p style="max-width: 680px; margin: 0 auto 32px;">Complete the application below. We review every submission for reliability, attention to detail, availability, and fit with the team.</p>
         </div>
+
+        <form id="jobApplicationForm" class="contact-form application-form" novalidate>
+          <div class="application-panel">
+            <div class="application-section-heading">
+              <span>Basic Information</span>
+              <p>Use the best contact information for scheduling next steps.</p>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="app-firstName">First Name <span class="required">*</span></label>
+                <input type="text" id="app-firstName" name="firstName" required autocomplete="given-name" placeholder="John">
+              </div>
+              <div class="form-group">
+                <label for="app-lastName">Last Name <span class="required">*</span></label>
+                <input type="text" id="app-lastName" name="lastName" required autocomplete="family-name" placeholder="Smith">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="app-phone">Phone Number <span class="required">*</span></label>
+                <input type="tel" id="app-phone" name="phone" required autocomplete="tel" placeholder="(813) 555-0123">
+              </div>
+              <div class="form-group">
+                <label for="app-email">Email Address <span class="required">*</span></label>
+                <input type="email" id="app-email" name="email" required autocomplete="email" placeholder="john@example.com">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="app-city">City <span class="required">*</span></label>
+              <input type="text" id="app-city" name="city" required autocomplete="address-level2" placeholder="Tampa or Orlando">
+            </div>
+          </div>
+
+          <div class="application-panel">
+            <div class="application-section-heading">
+              <span>Availability</span>
+              <p>Be specific about the days and hours you can work.</p>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="app-daysAvailable">Days Available <span class="required">*</span></label>
+                <input type="text" id="app-daysAvailable" name="daysAvailable" required placeholder="Mon, Tue, Fri, Sat">
+              </div>
+              <div class="form-group">
+                <label for="app-hoursAvailable">Hours Available <span class="required">*</span></label>
+                <input type="text" id="app-hoursAvailable" name="hoursAvailable" required placeholder="7am-4pm">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="app-startDate">Start Date <span class="required">*</span></label>
+              <input type="date" id="app-startDate" name="startDate" required>
+            </div>
+          </div>
+
+          <div class="application-panel">
+            <div class="application-section-heading">
+              <span>Experience</span>
+              <p>Tell us what you have done and what tools you already know.</p>
+            </div>
+            <div class="form-group">
+              <label for="app-detailingExperience">Detailing Experience <span class="required">*</span></label>
+              <textarea id="app-detailingExperience" name="detailingExperience" rows="4" required placeholder="Describe your detailing, cleaning, shop, or vehicle care experience..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="app-toolsUsed">Tools / Machines Used</label>
+              <textarea id="app-toolsUsed" name="toolsUsed" rows="3" placeholder="Polisher, extractor, steamer, pressure washer, ceramic coating tools, etc."></textarea>
+            </div>
+          </div>
+
+          <div class="application-panel">
+            <div class="application-section-heading">
+              <span>Work Ethic & Mindset</span>
+              <p>Quality detailing requires consistency, focus, and patience.</p>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="app-comfortableOutdoors">Comfortable Working Outdoors? <span class="required">*</span></label>
+                <select id="app-comfortableOutdoors" name="comfortableOutdoors" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="app-weekendAvailability">Weekend Availability? <span class="required">*</span></label>
+                <select id="app-weekendAvailability" name="weekendAvailability" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="app-attentionToDetail">Attention to Detail (1-10) <span class="required">*</span></label>
+              <input type="number" id="app-attentionToDetail" name="attentionToDetail" min="1" max="10" step="1" required placeholder="10">
+            </div>
+            <div class="form-group">
+              <label for="app-perfectDetailMeaning">What does a perfect detail mean to you? <span class="required">*</span></label>
+              <textarea id="app-perfectDetailMeaning" name="perfectDetailMeaning" rows="4" required></textarea>
+            </div>
+          </div>
+
+          <div class="application-panel">
+            <div class="application-section-heading">
+              <span>Reliability</span>
+              <p>Answer directly. We care about ownership and consistency.</p>
+            </div>
+            <div class="form-group">
+              <label for="app-everBeenFired">Ever been fired? Explain. <span class="required">*</span></label>
+              <textarea id="app-everBeenFired" name="everBeenFired" rows="3" required></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="app-daysMissed">Days Missed (Past Year) <span class="required">*</span></label>
+                <input type="text" id="app-daysMissed" name="daysMissed" required placeholder="0">
+              </div>
+              <div class="form-group">
+                <label for="app-whyHire">Why should we hire you? <span class="required">*</span></label>
+                <textarea id="app-whyHire" name="whyHire" rows="3" required></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="application-panel">
+            <div class="application-section-heading">
+              <span>Pay & Growth</span>
+              <p>Help us understand your current situation and expectations.</p>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="app-currentWeeklyIncome">Current Weekly Income <span class="required">*</span></label>
+                <input type="text" id="app-currentWeeklyIncome" name="currentWeeklyIncome" required inputmode="decimal" placeholder="$600/week">
+              </div>
+              <div class="form-group">
+                <label for="app-expectedWeeklyIncome">Expected Weekly Income <span class="required">*</span></label>
+                <input type="text" id="app-expectedWeeklyIncome" name="expectedWeeklyIncome" required inputmode="decimal" placeholder="$900/week">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="app-performancePay">Open to Performance Pay? <span class="required">*</span></label>
+                <select id="app-performancePay" name="performancePay" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="app-paidTestDetail">Willing to Complete Paid Test Detail? <span class="required">*</span></label>
+                <select id="app-paidTestDetail" name="paidTestDetail" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="hp-field" aria-hidden="true">
+            <label for="app-website">Website</label>
+            <input type="text" id="app-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="text-center" style="margin-top: 8px;">
+            <button type="submit" id="applicationSubmitBtn" class="btn btn-cta btn-lg btn-glow" style="min-width: 280px;">Submit Application</button>
+          </div>
+
+          <div id="applicationFormStatus" style="margin-top: 24px; text-align: center; display: none;">
+            <div id="applicationMessageBox" style="display: inline-block; padding: 18px 28px; border-radius: 12px; max-width: 560px; width: 100%;">
+              <p id="applicationFormMessage" style="font-size: 1.15rem; font-weight: 600; margin: 0; line-height: 1.4;"></p>
+            </div>
+          </div>
+        </form>
 
         <div class="text-center" style="margin-top: 48px;">
           <p style="font-size: 1.125rem;">Have questions about open positions? Contact us:</p>
@@ -199,6 +370,7 @@
           <a href="packages.html">Packages</a>
           <a href="book-now.html">Book Now</a>
           <a href="contact.html">Contact</a>
+          <a href="application.html">Apply for a Job</a>
           <a href="privacy.html">Privacy Policy</a>
         </div>
       </div>
@@ -209,6 +381,131 @@
   </footer>
 
   <script src="js/main.js" defer></script>
+
+  <script>
+  (function() {
+    var ENDPOINT = 'https://jriquvajwzarvrvlgpem.supabase.co/functions/v1/mx-detail-booking';
+    var form = document.getElementById('jobApplicationForm');
+    var btn = document.getElementById('applicationSubmitBtn');
+    var statusDiv = document.getElementById('applicationFormStatus');
+    var msgEl = document.getElementById('applicationFormMessage');
+    var box = document.getElementById('applicationMessageBox');
+
+    if (!form) return;
+
+    var startDate = document.getElementById('app-startDate');
+    if (startDate) {
+      startDate.setAttribute('min', new Date().toISOString().split('T')[0]);
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      var hp = document.getElementById('app-website');
+      if (hp && hp.value) return;
+
+      var required = form.querySelectorAll('[required]');
+      for (var i = 0; i < required.length; i++) {
+        if (!String(required[i].value || '').trim()) {
+          showStatus('Please fill in all required fields.', 'error');
+          required[i].focus();
+          return;
+        }
+      }
+
+      var email = form.email.value.trim();
+      var phone = form.phone.value.trim();
+      var attention = Number(form.attentionToDetail.value);
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showStatus('Please enter a valid email address.', 'error');
+        form.email.focus();
+        return;
+      }
+
+      if (phone.replace(/\D/g, '').length < 10) {
+        showStatus('Please enter a valid phone number.', 'error');
+        form.phone.focus();
+        return;
+      }
+
+      if (attention < 1 || attention > 10) {
+        showStatus('Attention to detail must be between 1 and 10.', 'error');
+        form.attentionToDetail.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      btn.style.opacity = '0.7';
+
+      var payload = {
+        formType: 'job_application',
+        firstName: form.firstName.value.trim(),
+        lastName: form.lastName.value.trim(),
+        phone: phone,
+        email: email,
+        city: form.city.value.trim(),
+        daysAvailable: form.daysAvailable.value.trim(),
+        hoursAvailable: form.hoursAvailable.value.trim(),
+        startDate: form.startDate.value,
+        detailingExperience: form.detailingExperience.value.trim(),
+        toolsUsed: form.toolsUsed.value.trim(),
+        comfortableOutdoors: form.comfortableOutdoors.value,
+        weekendAvailability: form.weekendAvailability.value,
+        attentionToDetail: form.attentionToDetail.value,
+        perfectDetailMeaning: form.perfectDetailMeaning.value.trim(),
+        everBeenFired: form.everBeenFired.value.trim(),
+        daysMissed: form.daysMissed.value.trim(),
+        whyHire: form.whyHire.value.trim(),
+        currentWeeklyIncome: form.currentWeeklyIncome.value.trim(),
+        expectedWeeklyIncome: form.expectedWeeklyIncome.value.trim(),
+        performancePay: form.performancePay.value,
+        paidTestDetail: form.paidTestDetail.value,
+        tags: ['job-application', 'website-application'],
+        source: 'Website - Job Application'
+      };
+
+      fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
+      .then(function(result) {
+        if (result.ok) {
+          showStatus('Your application has been submitted. We will review it and follow up if there is a fit.', 'success');
+          form.reset();
+        } else {
+          showStatus(result.data.error || 'Something went wrong. Please try again or call us directly.', 'error');
+        }
+      })
+      .catch(function() {
+        showStatus('Network error. Please check your connection or call us directly.', 'error');
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Submit Application';
+        btn.style.opacity = '1';
+      });
+    });
+
+    function showStatus(msg, type) {
+      statusDiv.style.display = 'block';
+      msgEl.textContent = msg;
+      msgEl.style.color = '#fff';
+      if (type === 'success') {
+        box.style.background = 'linear-gradient(135deg, #16a34a, #22c55e)';
+        box.style.boxShadow = '0 4px 24px rgba(34,197,94,0.35)';
+      } else {
+        box.style.background = 'linear-gradient(135deg, #dc2626, #e63946)';
+        box.style.boxShadow = '0 4px 24px rgba(220,38,38,0.3)';
+      }
+      box.style.border = 'none';
+      statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  })();
+  </script>
 
 </body>
 </html>
