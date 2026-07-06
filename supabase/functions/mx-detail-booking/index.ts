@@ -90,6 +90,100 @@ function truncateSms(value: string): string {
   return value.length > 1500 ? `${value.slice(0, 1497)}...` : value;
 }
 
+function truncateError(value: unknown): string {
+  const text = typeof value === "string" ? value : JSON.stringify(value ?? "");
+  return text.length > 1000 ? `${text.slice(0, 997)}...` : text;
+}
+
+function formTypeForSubmission(body: Record<string, unknown>): string {
+  if (body.formType === "job_application") return "job_application";
+  const source = textValue(body.source).toLowerCase();
+  if (source.includes("contact")) return "contact";
+  return "booking";
+}
+
+async function createFormSubmission(
+  body: Record<string, unknown>,
+  source: string,
+  locationKey: string,
+  marketTag?: string,
+): Promise<string | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error("Supabase submission ledger config missing");
+    return null;
+  }
+
+  const row = {
+    form_type: formTypeForSubmission(body),
+    source,
+    location: textValue(body.location || body.city || locationKey),
+    market_tag: marketTag ?? null,
+    first_name: textValue(body.firstName),
+    last_name: textValue(body.lastName),
+    email: textValue(body.email),
+    phone: textValue(body.phone),
+    payload: body,
+  };
+
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/mx_detail_form_submissions`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(row),
+    });
+
+    if (!res.ok) {
+      console.error(`Submission ledger insert failed: ${res.status} ${await res.text()}`);
+      return null;
+    }
+
+    const data = await res.json();
+    return data?.[0]?.id ?? null;
+  } catch (err) {
+    console.error("Submission ledger insert error:", err);
+    return null;
+  }
+}
+
+async function updateFormSubmission(
+  submissionId: string | null,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  if (!submissionId) return;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) return;
+
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/mx_detail_form_submissions?id=eq.${encodeURIComponent(submissionId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: serviceRoleKey,
+          Authorization: `Bearer ${serviceRoleKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
+      },
+    );
+
+    if (!res.ok) {
+      console.error(`Submission ledger update failed: ${res.status} ${await res.text()}`);
+    }
+  } catch (err) {
+    console.error("Submission ledger update error:", err);
+  }
+}
+
 async function addTagsWithRetry(
   contactId: string,
   tags: string[],
@@ -209,12 +303,15 @@ function buildLeadSmsBody(body: Record<string, unknown>, source: string): string
     .filter(Boolean)
     .join(" ");
   const message = textValue(body.message);
+  const title = textValue(body.smsTitle) || `New MX Detail lead${location ? ` (${location})` : ""}`;
+  const alert = textValue(body.smsAlert);
 
   const parts = [
-    `New MX Detail lead${location ? ` (${location})` : ""}`,
+    title,
     `Name: ${name}`,
     `Phone: ${phone}`,
   ];
+  if (alert) parts.push(`Alert: ${alert}`);
   if (email) parts.push(`Email: ${email}`);
   if (service) parts.push(`Service: ${service}`);
   if (vehicle) parts.push(`Vehicle: ${vehicle}`);
@@ -229,9 +326,9 @@ async function sendLeadSmsNotification(
   locationKey: string,
   body: Record<string, unknown>,
   source: string,
-): Promise<void> {
+): Promise<{ ok: boolean; error?: string }> {
   const recipientEnv = LEAD_SMS_RECIPIENT_ENV_BY_MARKET[locationKey];
-  if (!recipientEnv) return;
+  if (!recipientEnv) return { ok: false, error: `No SMS recipient for market: ${locationKey}` };
 
   const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
   const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -241,15 +338,15 @@ async function sendLeadSmsNotification(
 
   if (!accountSid || !authToken) {
     console.error("Twilio SMS config missing: TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN is not set");
-    return;
+    return { ok: false, error: "Twilio account SID or auth token missing" };
   }
   if (!fromPhone && !messagingServiceSid) {
     console.error("Twilio SMS config missing: TWILIO_FROM_PHONE or TWILIO_MESSAGING_SERVICE_SID is not set");
-    return;
+    return { ok: false, error: "Twilio sender missing" };
   }
   if (!toPhone) {
     console.error(`Twilio SMS recipient config missing: ${recipientEnv} is not set`);
-    return;
+    return { ok: false, error: `${recipientEnv} missing` };
   }
 
   const params = new URLSearchParams({
@@ -273,14 +370,19 @@ async function sendLeadSmsNotification(
 
   if (!res.ok) {
     let code = "unknown";
+    let message = "";
     try {
       const data = await res.json();
       code = String(data?.code ?? code);
+      message = String(data?.message ?? "");
     } catch {
       // Ignore parse errors; the HTTP status is enough for safe logging.
     }
     console.error(`Twilio SMS send failed: status=${res.status} code=${code}`);
+    return { ok: false, error: `status=${res.status} code=${code}${message ? ` ${message}` : ""}` };
   }
+
+  return { ok: true };
 }
 
 // ── Slack Notification ──────────────────────────────────────────
@@ -533,7 +635,8 @@ Deno.serve(async (req: Request) => {
       tags.push(marketTag);
     }
 
-    const source = body.source || "Website - Book Now";
+    const source = textValue(body.source) || "Website - Book Now";
+    const submissionId = await createFormSubmission(body, source, locationKey, marketTag);
 
     // ── Build custom fields using actual GHL field IDs ──
     const customFields: { id: string; field_value: string }[] = [];
@@ -559,20 +662,68 @@ Deno.serve(async (req: Request) => {
       }),
     });
 
-    const upsertData = await upsertRes.json();
+    const upsertText = await upsertRes.text();
+    let upsertData: Record<string, unknown> = {};
+    try {
+      upsertData = upsertText ? JSON.parse(upsertText) : {};
+    } catch {
+      upsertData = { raw: upsertText };
+    }
 
-    let contactId: string | null = upsertData?.contact?.id ?? null;
+    let contactId: string | null = (upsertData?.contact as { id?: string } | undefined)?.id ?? null;
 
     if (!upsertRes.ok) {
       console.error("GHL upsert error:", JSON.stringify(upsertData));
+      const ghlError = `upsert ${upsertRes.status}: ${truncateError(upsertData)}`;
       // Fallback: try to look up existing contact by email
       contactId = await lookupContactByEmail(email, ghl);
       if (!contactId) {
+        await updateFormSubmission(submissionId, {
+          ghl_status: "failed",
+          ghl_error: ghlError,
+        });
+
+        if (!isJobApplication) {
+          const smsResult = await sendLeadSmsNotification(
+            locationKey,
+            {
+              ...body,
+              source,
+              smsTitle: "URGENT: MX Detail lead not saved to GHL",
+              smsAlert: "GHL failed. Lead is in Supabase fallback ledger.",
+            },
+            String(source),
+          );
+          await updateFormSubmission(submissionId, {
+            sms_status: smsResult.ok ? "fallback_sent" : "failed",
+            sms_error: smsResult.error ?? null,
+          });
+
+          if (submissionId || smsResult.ok) {
+            return new Response(
+              JSON.stringify({ success: true, message: "Submitted successfully!" }),
+              { status: 200, headers },
+            );
+          }
+        }
+
         return new Response(
           JSON.stringify({ error: "Failed to create contact. Please call us directly." }),
           { status: 502, headers },
         );
       }
+
+      await updateFormSubmission(submissionId, {
+        ghl_contact_id: contactId,
+        ghl_status: "recovered_existing",
+        ghl_error: ghlError,
+      });
+    } else {
+      await updateFormSubmission(submissionId, {
+        ghl_contact_id: contactId,
+        ghl_status: "upserted",
+        ghl_error: null,
+      });
     }
 
     // ── Explicitly add tags (upsert doesn't reliably add to existing) ──
@@ -624,6 +775,10 @@ Deno.serve(async (req: Request) => {
       if (isJobApplication && !noteRes.ok) {
         const noteData = await noteRes.text();
         console.error(`Job application note create failed: ${noteRes.status} ${noteData}`);
+        await updateFormSubmission(submissionId, {
+          ghl_status: "note_failed",
+          ghl_error: `note ${noteRes.status}: ${truncateError(noteData)}`,
+        });
         return new Response(
           JSON.stringify({ error: "Application contact was created, but the application details note failed. Please call us directly." }),
           { status: 502, headers },
@@ -632,7 +787,15 @@ Deno.serve(async (req: Request) => {
     }
 
     if (isJobApplication && contactId) {
-      await createJobApplicationOpportunity(contactId, body, ghl);
+      try {
+        await createJobApplicationOpportunity(contactId, body, ghl);
+      } catch (err) {
+        await updateFormSubmission(submissionId, {
+          ghl_status: "opportunity_failed",
+          ghl_error: truncateError(err instanceof Error ? err.message : err),
+        });
+        throw err;
+      }
     }
 
     // ── Slack notification for job applications (fire-and-forget) ──
@@ -661,10 +824,20 @@ Deno.serve(async (req: Request) => {
     // ── SMS notification for market owner ──
     if (!isJobApplication) {
       try {
-        await sendLeadSmsNotification(locationKey, { ...body, source }, source);
+        const smsResult = await sendLeadSmsNotification(locationKey, { ...body, source }, source);
+        await updateFormSubmission(submissionId, {
+          sms_status: smsResult.ok ? "sent" : "failed",
+          sms_error: smsResult.error ?? null,
+        });
       } catch (err) {
         console.error("SMS notification error:", err);
+        await updateFormSubmission(submissionId, {
+          sms_status: "failed",
+          sms_error: truncateError(err instanceof Error ? err.message : err),
+        });
       }
+    } else {
+      await updateFormSubmission(submissionId, { sms_status: "not_applicable" });
     }
 
     return new Response(
