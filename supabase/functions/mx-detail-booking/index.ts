@@ -6,6 +6,8 @@ const GHL_LOCATION_ID = "EYGA3G4KGz3qHyZXzRkH";
 
 // GHL Custom Field IDs (from /locations/{id}/customFields)
 const CF_SERVICE_CITY = "2MXRgYECjblQZMg54tin";
+const BOOKING_PIPELINE_ID = "oJskOhw6Uhw6R80DAFbC"; // Detailing
+const BOOKING_STAGE_ID = "9743556c-f041-4992-b6af-47c30fe890a8"; // New Lead
 const JOB_APPLICATION_PIPELINE_ID = "KdzgB4JGVXkNche5fcnS"; // Detailer Applications
 const JOB_APPLICATION_STAGE_ID = "e4ec24b7-4d0e-4e30-9026-2cb7c1340dcd"; // New Application
 
@@ -176,6 +178,49 @@ async function createJobApplicationOpportunity(
     const data = await res.text();
     console.error(`Job application opportunity create failed: ${res.status} ${data}`);
     throw new Error("Failed to create job application opportunity");
+  }
+
+  const data = await res.json();
+  return data?.opportunity?.id ?? data?.id ?? "";
+}
+
+async function createBookingOpportunity(
+  contactId: string,
+  body: Record<string, unknown>,
+  headers: Record<string, string>,
+): Promise<string> {
+  const firstName = String(body.firstName ?? "").trim();
+  const lastName = String(body.lastName ?? "").trim();
+  const service = String(body.service ?? "").trim();
+  const vehicle = [body.vehicleYear, body.vehicleMake, body.vehicleModel]
+    .map((part) => String(part ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+  const nameParts = [
+    service || "Detailing Request",
+    [firstName, lastName].filter(Boolean).join(" "),
+    vehicle,
+  ].filter(Boolean);
+
+  const res = await fetch(`${GHL_API}/opportunities/`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      pipelineId: BOOKING_PIPELINE_ID,
+      locationId: GHL_LOCATION_ID,
+      name: nameParts.join(" - "),
+      pipelineStageId: BOOKING_STAGE_ID,
+      status: "open",
+      contactId,
+      monetaryValue: 0,
+      source: body.source || "Website - Book Now",
+    }),
+  });
+
+  if (!res.ok) {
+    const data = await res.text();
+    console.error(`Booking opportunity create failed: ${res.status} ${data}`);
+    throw new Error("Failed to create booking opportunity");
   }
 
   const data = await res.json();
@@ -530,8 +575,12 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (isJobApplication && contactId) {
-      await createJobApplicationOpportunity(contactId, body, ghl);
+    if (contactId) {
+      if (isJobApplication) {
+        await createJobApplicationOpportunity(contactId, body, ghl);
+      } else {
+        await createBookingOpportunity(contactId, { ...body, source }, ghl);
+      }
     }
 
     // ── Slack notification for job applications (fire-and-forget) ──
