@@ -243,8 +243,8 @@ async function sendLeadSmsNotification(
     console.error("Twilio SMS config missing: TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN is not set");
     return;
   }
-  if (!messagingServiceSid && !fromPhone) {
-    console.error("Twilio SMS config missing: TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_PHONE is not set");
+  if (!fromPhone && !messagingServiceSid) {
+    console.error("Twilio SMS config missing: TWILIO_FROM_PHONE or TWILIO_MESSAGING_SERVICE_SID is not set");
     return;
   }
   if (!toPhone) {
@@ -256,10 +256,10 @@ async function sendLeadSmsNotification(
     To: toPhone,
     Body: buildLeadSmsBody(body, source),
   });
-  if (messagingServiceSid) {
-    params.set("MessagingServiceSid", messagingServiceSid);
-  } else if (fromPhone) {
+  if (fromPhone) {
     params.set("From", fromPhone);
+  } else if (messagingServiceSid) {
+    params.set("MessagingServiceSid", messagingServiceSid);
   }
 
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
@@ -658,11 +658,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // ── SMS notification for market owner (fire-and-forget) ──
+    // ── SMS notification for market owner ──
     if (!isJobApplication) {
-      sendLeadSmsNotification(locationKey, { ...body, source }, source).catch((err) =>
-        console.error("SMS notification error:", err),
-      );
+      try {
+        await sendLeadSmsNotification(locationKey, { ...body, source }, source);
+      } catch (err) {
+        console.error("SMS notification error:", err);
+      }
     }
 
     return new Response(
