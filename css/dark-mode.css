@@ -725,14 +725,6 @@ p {
 .form-group textarea::placeholder {
   color: var(--dm-text-muted) !important;
 }
-.booking-widget-shell {
-  background: #fff !important;
-  border-color: rgba(0, 124, 186, 0.45) !important;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35) !important;
-}
-.booking-widget-fallback p {
-  color: var(--dm-text-muted) !important;
-}
 .radio-fieldset legend {
   color: var(--dm-text) !important;
 }

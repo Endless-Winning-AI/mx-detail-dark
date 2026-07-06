@@ -1535,35 +1535,6 @@ p { margin-bottom: 1rem; }
   max-width: 700px;
   margin: var(--space-lg) auto 0;
 }
-
-.booking-widget-shell {
-  max-width: 980px;
-  margin: var(--space-lg) auto 0;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-white);
-  box-shadow: var(--shadow-lg);
-}
-
-.booking-widget-iframe {
-  display: block;
-  width: 100%;
-  min-height: 940px;
-  border: 0;
-  background: var(--color-white);
-}
-
-.booking-widget-fallback {
-  margin-top: 32px;
-}
-
-.booking-widget-fallback p {
-  margin-bottom: 16px;
-  color: var(--color-gray-dark);
-  font-size: 1rem;
-}
-
 .form-group {
   margin-bottom: 20px;
 }
