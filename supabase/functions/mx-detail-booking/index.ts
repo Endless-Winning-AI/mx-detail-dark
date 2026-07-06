@@ -48,6 +48,11 @@ const MARKET_MAP: Record<string, { tag: string; city: string }> = {
   orlando: { tag: "orlando-market", city: "Orlando Market" },
 };
 
+const LEAD_SMS_RECIPIENT_ENV_BY_MARKET: Record<string, string> = {
+  tampa: "MXDETAIL_TAMPA_LEAD_SMS_TO",
+  orlando: "MXDETAIL_ORLANDO_LEAD_SMS_TO",
+};
+
 // Slack
 const SLACK_LEADS_CHANNEL = "C0A2BRWT7PD"; // #leads
 
@@ -75,6 +80,14 @@ function slackChannelRef(channel: string): string {
   if (!value) return value;
   if (value.startsWith("#") || /^[A-Z][A-Z0-9]{8,}$/.test(value)) return value;
   return `#${value}`;
+}
+
+function textValue(value: unknown): string {
+  return typeof value === "string" ? value.trim() : String(value ?? "").trim();
+}
+
+function truncateSms(value: string): string {
+  return value.length > 1500 ? `${value.slice(0, 1497)}...` : value;
 }
 
 async function addTagsWithRetry(
@@ -180,6 +193,94 @@ async function createJobApplicationOpportunity(
 
   const data = await res.json();
   return data?.opportunity?.id ?? data?.id ?? "";
+}
+
+function buildLeadSmsBody(body: Record<string, unknown>, source: string): string {
+  const firstName = textValue(body.firstName);
+  const lastName = textValue(body.lastName);
+  const name = [firstName, lastName].filter(Boolean).join(" ") || "Unknown lead";
+  const phone = textValue(body.phone) || "No phone";
+  const email = textValue(body.email);
+  const service = textValue(body.service);
+  const location = textValue(body.location);
+  const preferredDate = textValue(body.preferredDate);
+  const vehicle = [body.vehicleYear, body.vehicleMake, body.vehicleModel]
+    .map(textValue)
+    .filter(Boolean)
+    .join(" ");
+  const message = textValue(body.message);
+
+  const parts = [
+    `New MX Detail lead${location ? ` (${location})` : ""}`,
+    `Name: ${name}`,
+    `Phone: ${phone}`,
+  ];
+  if (email) parts.push(`Email: ${email}`);
+  if (service) parts.push(`Service: ${service}`);
+  if (vehicle) parts.push(`Vehicle: ${vehicle}`);
+  if (preferredDate) parts.push(`Preferred date: ${preferredDate}`);
+  if (message) parts.push(`Notes: ${message}`);
+  parts.push(`Source: ${source}`);
+
+  return truncateSms(parts.join("\n"));
+}
+
+async function sendLeadSmsNotification(
+  locationKey: string,
+  body: Record<string, unknown>,
+  source: string,
+): Promise<void> {
+  const recipientEnv = LEAD_SMS_RECIPIENT_ENV_BY_MARKET[locationKey];
+  if (!recipientEnv) return;
+
+  const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+  const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+  const messagingServiceSid = Deno.env.get("TWILIO_MESSAGING_SERVICE_SID");
+  const fromPhone = Deno.env.get("TWILIO_FROM_PHONE");
+  const toPhone = Deno.env.get(recipientEnv);
+
+  if (!accountSid || !authToken) {
+    console.error("Twilio SMS config missing: TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN is not set");
+    return;
+  }
+  if (!messagingServiceSid && !fromPhone) {
+    console.error("Twilio SMS config missing: TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_PHONE is not set");
+    return;
+  }
+  if (!toPhone) {
+    console.error(`Twilio SMS recipient config missing: ${recipientEnv} is not set`);
+    return;
+  }
+
+  const params = new URLSearchParams({
+    To: toPhone,
+    Body: buildLeadSmsBody(body, source),
+  });
+  if (messagingServiceSid) {
+    params.set("MessagingServiceSid", messagingServiceSid);
+  } else if (fromPhone) {
+    params.set("From", fromPhone);
+  }
+
+  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${btoa(`${accountSid}:${authToken}`)}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params.toString(),
+  });
+
+  if (!res.ok) {
+    let code = "unknown";
+    try {
+      const data = await res.json();
+      code = String(data?.code ?? code);
+    } catch {
+      // Ignore parse errors; the HTTP status is enough for safe logging.
+    }
+    console.error(`Twilio SMS send failed: status=${res.status} code=${code}`);
+  }
 }
 
 // ── Slack Notification ──────────────────────────────────────────
@@ -555,6 +656,13 @@ Deno.serve(async (req: Request) => {
           console.error("Slack notification error:", err),
         );
       }
+    }
+
+    // ── SMS notification for market owner (fire-and-forget) ──
+    if (!isJobApplication) {
+      sendLeadSmsNotification(locationKey, { ...body, source }, source).catch((err) =>
+        console.error("SMS notification error:", err),
+      );
     }
 
     return new Response(
