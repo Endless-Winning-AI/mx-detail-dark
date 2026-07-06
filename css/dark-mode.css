@@ -725,6 +725,16 @@ p {
 .form-group textarea::placeholder {
   color: var(--dm-text-muted) !important;
 }
+.date-picker-button {
+  background: rgba(0, 124, 186, 0.16) !important;
+  border-color: rgba(0, 124, 186, 0.35) !important;
+  color: var(--dm-text) !important;
+}
+.date-picker-button:hover,
+.date-picker-button:focus {
+  background: rgba(0, 124, 186, 0.28) !important;
+  border-color: var(--color-primary) !important;
+}
 .radio-fieldset legend {
   color: var(--dm-text) !important;
 }

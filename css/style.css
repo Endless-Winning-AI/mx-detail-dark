@@ -1571,6 +1571,54 @@ p { margin-bottom: 1rem; }
   resize: vertical;
   min-height: 120px;
 }
+.date-picker-control {
+  position: relative;
+}
+.date-picker-control input[type="date"] {
+  cursor: pointer;
+  padding-right: 58px;
+}
+.date-picker-control input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  height: 100%;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  width: 58px;
+}
+.date-picker-button {
+  align-items: center;
+  background: rgba(0, 124, 186, 0.08);
+  border: 1px solid rgba(0, 124, 186, 0.22);
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--color-black);
+  cursor: pointer;
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: background 0.2s ease, border-color 0.2s ease;
+  width: 40px;
+}
+.date-picker-button:hover,
+.date-picker-button:focus {
+  background: rgba(0, 124, 186, 0.16);
+  border-color: var(--color-primary);
+  outline: none;
+}
+.date-picker-button svg {
+  fill: none;
+  height: 20px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 20px;
+}
 .radio-fieldset {
   border: 0;
   margin: 0;
